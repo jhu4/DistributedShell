@@ -1,7 +1,7 @@
 CC      = g++
 CFLAGS  = -Wall -g
 LDFLAGS = -g
-TARGET  = client
+TARGET  = dsh
 SRCEXT  = cpp
 
 SOURCES = $(wildcard src/*.$(SRCEXT))
