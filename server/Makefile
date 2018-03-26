@@ -1,8 +1,8 @@
-CC      = gcc
+CC      = g++
 CFLAGS  = -Wall -g
 LDFLAGS = -g
-TARGET  = copy_time
-SRCEXT  = c
+TARGET  = server
+SRCEXT  = cpp
 
 SOURCES = $(wildcard src/*.$(SRCEXT))
 OBJECTS = $(patsubst src/%, build/%,$(SOURCES:.$(SRCEXT)=.o))
