@@ -1,47 +1,47 @@
 #include "client.hpp"
 
 int main(int argc, char** argv) {
-    std::cout<<"hello world"<<std::endl;
-    // Client side C/C++ program to demonstrate Socket programming
-
     // struct sockaddr_in address;
     std::string command;
     std::string host;
+    
     int port = get_options(command, host, argc, argv);
     
-    std::cout << "Host server is " << host << " Command is" << command;
-    std::cout << "Port is "<< port << std::endl; 
+    //TODO remove
+    std::cout << "Host server is " << host << " Command is " << command << "Port is "<< port << std::endl; 
     
-//     int sock = 0, valread;
-//     struct sockaddr_in serv_addr;
-//     std::string hello = "Hello from client";
-//     char buffer[1024] = {0};
-//     if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-//         printf("\n Socket creation error \n");
-//         return -1;
-//     }
-//   
-//     memset(&serv_addr, '0', sizeof(serv_addr));
-//   
-//     serv_addr.sin_family = AF_INET;
-//     serv_addr.sin_port = htons(PORT);
-//       
-//     // Convert IPv4 and IPv6 addresses from text to binary form
-//     if(inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)<=0) {
-//         printf("\nInvalid address/ Address not supported \n");
-//         return -1;
-//     }
-//   
-//     if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
-//         printf("\nConnection Failed \n");
-//         return -1;
-//     }
-//     
-//     int send_flags = 0; //TODO modify the flags
-//     send(sock , hello.c_str() , hello.length() , send_flags); //TODO 
-//     printf("Hello message sent\n");
-//     valread = read( sock , buffer, 1024);
-//     printf("%s\n",buffer );
+    int sock = 0, valread;
+    struct sockaddr_in serv_addr;
+    char buffer[1024] = {0};
+    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+        printf("\n * Socket creation error * \n");
+        exit(-1);
+    }
+  
+    memset(&serv_addr, '0', sizeof(serv_addr));
+  
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(PORT);
+      
+     //TODO: getaddrinfo() on the host 
+     
+    // Convert IPv4 and IPv6 addresses from text to binary form
+    if(inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)<=0) {
+        printf("\nInvalid address/ Address not supported \n");
+        exit(-1);
+    }
+  
+    if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
+        printf("\nConnection Failed \n");
+        exit(-1);
+    }
+    
+    int send_flags = 0; //TODO modify the flags
+    send(sock , command.c_str() , command.length() , send_flags); //TODO 
+    printf("Command message sent\n");
+    valread = read(sock , buffer, 1024);
+    if (valread == -1) perror("read error");
+    printf("%s\n",buffer);
     return 0;
 }
 
