@@ -16,6 +16,14 @@
 #define MAX_SIZE 1024
 
 void get_options(std::string&, std::string&, std::string&, int, char**);
-void free_exit(struct addrinfo* serv);
+void free_exit(struct addrinfo*);
 void usage();
+std::string user_name();
+void send_to_server(int, std::string);
+int get_sock(std::string host, std::string port, struct addrinfo* serv);
+int unique_number(char* buffer, struct addrinfo* serv);
+void receive_from_server(int sock, char* buffer, struct addrinfo* serv);
+ std::string encrypt(int unique_number);
+std::string user_name();
+
 #endif //PROJECT_1_H
