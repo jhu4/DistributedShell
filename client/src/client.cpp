@@ -11,6 +11,10 @@ void print_options(std::string host, std::string command, std::string port) {
                 << "Port: " << port << std::endl;
 }
 
+char* get_hashcode(char* rand) {
+	return crypt("meow", rand);
+}
+
 int main(int argc, char** argv) {
     std::string command, host, port;
 
@@ -23,25 +27,28 @@ int main(int argc, char** argv) {
 
     // Begin communication
     char buffer[MAX_SIZE] = {0};
-    //1. Client sends user-name to server (but not password)
+    std::cout << "1. Client sends user-name to server (but not password)" << std::endl;
     send_to_server(sock, user_name());
-    
-    //2. Server responds by sending back unique random number (using rand() and srand()) 
-
+    sleep(1);
+    std::cout << "2. Server responds by sending back unique random number (using rand() and srand()) " << std::endl;
     receive_from_server(sock, buffer, serv);
     std::cout<<"Here is my random number from the server: " << buffer << std::endl;
-
     
-    //3. Client encrypts using user’s password plus number as key     
+    std::cout << "Here is the hash code: " << get_hashcode(buffer) << std::endl;
+    sleep(1);
+    
+    std::cout<<"3. Client encrypts using user’s password plus number as key " << std::endl;  
+      
     std::string salted_hash = std::string(crypt("meow", buffer));
-    
-    //TODO 4. Client sends hashed/encrypted value back to server
+
+    std::cout<<"4. Client sends hashed/encrypted value back to server" << std::endl;
     send_to_server(sock, salted_hash);
-    
-    //TODO 5. Server encrypts using the user’s same password plus number as key   
-    //TODO 6. Server compares two hashed/encrypted values, if same then ok
+    sleep(1);    
+    std::cout<<"5. Server encrypts using the user’s same password plus number as key   " << std::endl;
+    std::cout<<"6. Server compares two hashed/encrypted values, if same then ok" << std::endl;
     
     send_to_server(sock, command);
+    sleep(1);
     receive_from_server(sock, buffer, serv);
     
     close(sock); 
@@ -87,6 +94,7 @@ int unique_number(char* buffer, struct addrinfo* serv) {
 }
 
 void receive_from_server(int sock, char* buffer, struct addrinfo* serv) {
+    memset(buffer, 0, MAX_SIZE);
     int bytes_received = recv(sock, buffer, MAX_SIZE, 0);
     if (!bytes_received) {
         std::cout << "Connection has closed" << std::endl;

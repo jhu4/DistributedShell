@@ -17,6 +17,7 @@
 #include <signal.h>
 #include <crypt.h>
 
+//TODO add hashtable of users to passwords
 
 void usage();
 void server_routine(int server_fd);
@@ -98,6 +99,7 @@ void server_routine(int server_fd) {
   	std::string random_num = ss.str();
 
   	close(server_fd);
+    // receive user_name
 	  while (!(flag = recv(new_socket, buffer, SO_SNDBUF, 0))) {
 	  	if (flag == -1) {
 	  		close(new_socket);
@@ -106,11 +108,17 @@ void server_routine(int server_fd) {
 	  	}
 	  }
 	  std::cout << "recv 1st " << buffer << std::endl;
-
+    
+    sleep(1);
+    // send the random string
 	  if (send(new_socket , random_num.c_str(), random_num.length(), 0) == -1) {
 	  	std::cerr << "child process: invalid rend" << std::endl;
 	  }
+	  std::cout << "Here is the number I sent:" << random_num << std::endl;
 	  
+	  
+	  sleep(1);
+	  // receive the hashed password
 	  while (!(flag = recv(new_socket, buffer, SO_SNDBUF, 0))) {
 	  	if (flag == -1) {
 	  		close(new_socket);
@@ -118,8 +126,10 @@ void server_routine(int server_fd) {
 				exit(EXIT_FAILURE);
 	  	}
 	  }
-	  std::cout << "recv 2nd " << buffer << std::endl;
 
+	  std::cout << "recv 2nd " << buffer << std::endl;
+	  sleep(1);
+  // TODO send the result of the terminal
 	  if (send(new_socket , "msg", strlen("msg") , 0 ) == -1) {
 	  	std::cerr << "child process: invalid rend" << std::endl;
 	  }
