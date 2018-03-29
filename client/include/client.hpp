@@ -13,6 +13,8 @@
 #include <netdb.h>
 #include <iostream>
 
+#define MAX_SIZE 1024
+
 void get_options(std::string&, std::string&, std::string&, int, char**);
 void free_exit(struct addrinfo* serv);
 void usage();

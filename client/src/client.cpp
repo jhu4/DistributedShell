@@ -27,7 +27,7 @@ int main(int argc, char** argv) {
         free_exit(serv);
     }               
 
-    char buffer[1024] = {0};
+    char buffer[MAX_SIZE] = {0};
     int sock = socket(serv->ai_family, serv->ai_socktype, serv->ai_protocol);
     if (sock < 0) {
         perror("Socket creation error");
@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
     
     else {
         std::cout << "Command message sent" << std::endl;
-        int valread = read(sock , buffer, 1024);
+        int valread = read(sock , buffer, MAX_SIZE);
         if (valread == -1) perror("read error");
         std::cout << buffer << std::endl;
     }
@@ -65,7 +65,7 @@ void get_options(std::string& command, std::string& host, std::string& port, int
     extern char *optarg;
     opterr = 1; /* set to 0 to disable error message */
       
-    int choice, help = 0, errflag = 0;      
+    int choice, help = 0, errflag = 0, port_change = 0;      
     while ((choice = getopt(argc, argv, "c:s:p:h")) != EOF) {
         switch (choice) {
             case 'c':
@@ -77,6 +77,7 @@ void get_options(std::string& command, std::string& host, std::string& port, int
                 if (command.length()) errflag = 1;
                 break;
             case 'p': 
+                port_change = 1;
                 port = optarg;
                 break;
             case 'h': 
@@ -91,6 +92,7 @@ void get_options(std::string& command, std::string& host, std::string& port, int
         usage();
         exit(0);
     }
+    if (!port_change) port = "4513";
 }
 
 void usage() {
