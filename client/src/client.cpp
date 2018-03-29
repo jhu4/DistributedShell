@@ -9,8 +9,7 @@ int main(int argc, char** argv) {
     //TODO remove, just for testing
     std::cout << "Host server: " << host << std::endl
                 << "Command: " << command << std::endl
-                << "Port: " << port << std::endl; 
-                
+                << "Port: " << port << std::endl;
                 
     /* http://beej.us/guide/bgnet/html/single/bgnet.html#getaddrinfo */
     struct addrinfo hints;
@@ -46,8 +45,8 @@ int main(int argc, char** argv) {
     
     else {
         std::cout << "Command message sent" << std::endl;
-        int valread = read(sock , buffer, MAX_SIZE);
-        if (valread == -1) perror("read error");
+        int bytes_received = recv(sock, buffer, MAX_SIZE, 0);
+        if (bytes_received < 0) perror("recv error");
         std::cout << buffer << std::endl;
     }
     
