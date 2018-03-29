@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <netinet/in.h>
 #include <unistd.h>
-#include <string>
+#include <string.h>
 #include <sys/types.h>
 #include <netdb.h>
 #include <iostream>

@@ -15,7 +15,7 @@ int main(int argc, char** argv) {
     
     struct addrinfo* serv = NULL;  // will point to the results
     int sock = get_sock(host, port, serv);
-    
+
     // Begin communication
     char buffer[MAX_SIZE] = {0};
     //1. Client sends user-name to server (but not password)
@@ -103,7 +103,7 @@ std::string user_name() {
 }
 
 void send_to_server(int sock, std::string msg) {
-    int bytes_sent = send(sock, msg.c_str(), msg.length(), 0);
+    unsigned int bytes_sent = send(sock, msg.c_str(), msg.length(), 0);
     if (bytes_sent < 0) perror("send");
     if (bytes_sent < msg.length()) 
         std::cout << "TODO: What if less than everything was sent?" << std::endl;
@@ -116,7 +116,7 @@ void free_exit(struct addrinfo* serv) {
 }
 
 void get_options(std::string& command, std::string& host, std::string& port, int argc, char** argv) {
-    extern int optind, opterr;
+    extern int opterr;
     extern char *optarg;
     opterr = 1; /* set to 0 to disable error message */
       

@@ -28,6 +28,8 @@ int main(int argc, char** argv)
 
 	get_options(directory, port, argc, argv);
 
+	std::cout << "port:" << port << "\tdirectory" << directory << std::endl;
+
 	memset(&hints, 0, sizeof hints);
 	hints.ai_family = AF_UNSPEC;  // use IPv4 or IPv6, whichever
 	hints.ai_socktype = SOCK_STREAM;
@@ -46,11 +48,12 @@ int main(int argc, char** argv)
     exit(EXIT_FAILURE);
   }
 
-  if (!listen(sockfd, 5)) { //listen queue is 5
+  if (listen(sockfd, 5) < 0) { //listen queue is 5
   	std::cerr << "listen failed" << strerror(errno) << std::endl;
   	exit(EXIT_FAILURE);
   }
 
+  std::cout << "meow" << std::endl;
   while (1) {
   	server_routine(sockfd);
   }
@@ -73,7 +76,9 @@ void server_routine(int server_fd) {
     exit(EXIT_FAILURE);
 	}
 
-  
+	
+	std::cout << "received a request from " << address.__ss_align << std::endl;
+
   if ((pid = fork()) == 0) {
   	//children
   	int flag;
@@ -104,25 +109,21 @@ void get_options(std::string& directory, std::string& port, int argc, char** arg
     extern char *optarg;
     int choice, help = 0;
 
-    while ((choice = getopt(argc, argv, "p::d::h")) != EOF) {
-        switch (choice) {
-            case 'p':
-                if (optarg) {
-                    port = optarg;
-                }
-                break;
-            case 'd':
-                if (optarg) {
-                    directory = optarg;
-                }
-                break;
-            case 'h': 
-                help++;
-                break;
-            case '?': 
-                usage();
-                exit(-1);
-        }
+    while ((choice = getopt(argc, argv, "p:d:h")) != EOF) {
+      switch (choice) {
+        case 'p':
+        	port = std::string(optarg);
+          break;
+        case 'd':
+          directory = std::string(optarg);
+          break;
+        case 'h': 
+          help++;
+          break;
+        case '?': 
+          usage();
+          exit(-1);
+      }
     }
     if (help) {
         usage();
