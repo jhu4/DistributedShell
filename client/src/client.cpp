@@ -6,55 +6,58 @@ int main(int argc, char** argv) {
 
     get_options(command, host, port, argc, argv);
     
-    //TODO remove
+    //TODO remove, just for testing
     std::cout << "Host server: " << host << std::endl
                 << "Command: " << command << std::endl
                 << "Port: " << port << std::endl; 
                 
                 
     /* http://beej.us/guide/bgnet/html/single/bgnet.html#getaddrinfo */
-    int status;
     struct addrinfo hints;
-    struct addrinfo *servinfo;  // will point to the results
+    struct addrinfo* serv;  // will point to the results
     memset(&hints, 0, sizeof(hints)); // make sure the struct is empty
     hints.ai_family = AF_UNSPEC;     // don't care IPv4 or IPv6
     hints.ai_socktype = SOCK_STREAM; // TCP stream sockets
 
     // get ready to connect
-    status = getaddrinfo(host.c_str(), port.c_str(), &hints, &servinfo);
-                
-                
-    int sock = 0, valread;
-    struct sockaddr_in serv_addr;
+    int status = getaddrinfo(host.c_str(), port.c_str(), &hints, &serv);
+    
+    if(status) {
+        perror("getaddrinfo");
+        free_exit(serv);
+    }               
+
     char buffer[1024] = {0};
-    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        printf("\n * Socket creation error * \n");
-        exit(-1);
-    }
-      
-    memset(&serv_addr, '0', sizeof(serv_addr));
-  
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(PORT);
-     
-    // Convert IPv4 and IPv6 addresses from text to binary form
-    if(inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)<=0) {
-        printf("\nInvalid address/ Address not supported \n");
-        exit(-1);
+    int sock = socket(serv->ai_family, serv->ai_socktype, serv->ai_protocol);
+    if (sock < 0) {
+        perror("Socket creation error");
+        free_exit(serv);
     }
   
-    if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
-        printf("\nConnection Failed \n");
-        exit(-1);
+    if (connect(sock, serv->ai_addr, serv->ai_addrlen) < 0) {
+        perror("Connection Failed");
+        free_exit(serv);
     }
     
-    int send_flags = 0; //TODO modify the flags
-    send(sock , command.c_str() , command.length() , send_flags); //TODO 
-    printf("Command message sent\n");
-    valread = read(sock , buffer, 1024);
-    if (valread == -1) perror("read error");
-    printf("%s\n",buffer);
+    int bytes_sent = send(sock, command.c_str(), command.length(), 0);
+    if (bytes_sent < 0) perror("send");
+
+    if (bytes_sent < command.length()) std::cout << "TODO" << std::endl;
+    
+    else {
+        std::cout << "Command message sent" << std::endl;
+        int valread = read(sock , buffer, 1024);
+        if (valread == -1) perror("read error");
+        std::cout << buffer << std::endl;
+    }
+    
+    freeaddrinfo(serv);
     return 0;
+}
+
+void free_exit(struct addrinfo* serv) {
+    freeaddrinfo(serv);
+    exit(-1);
 }
 
 void get_options(std::string& command, std::string& host, std::string& port, int argc, char** argv) {
@@ -94,8 +97,8 @@ void usage() {
     std::cout<<"distributed shell client"<<std::endl;
     std::cout<< "usage: dsh [flags] {-c command}, where flags are:"<<std::endl;
     std::cout<<"\t{-c command}    command to execute remotely"<<std::endl;
-    std::cout<<"\t{-s host}       host server is on"<<std::endl;
-    std::cout<<"\t[-p #]          port server is on (default is 4513)"<<std::endl;
+    std::cout<<"\t{-s host}       host serv is on"<<std::endl;
+    std::cout<<"\t[-p #]          port serv is on (default is 4513)"<<std::endl;
     std::cout<<"\t[-h]            this help message"<<std::endl;
     exit(0);
 }
