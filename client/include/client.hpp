@@ -9,8 +9,10 @@
 #include <netinet/in.h>
 #include <unistd.h>
 #include <string>
+#include <sys/types.h>
+#include <netdb.h>
 
-int get_options(std::string& command, std::string& host, int argc, char** argv);
+void get_options(std::string&, std::string&, std::string&, int, char**);
 
 void usage();
 

@@ -2,14 +2,28 @@
 
 int main(int argc, char** argv) {
     // struct sockaddr_in address;
-    std::string command;
-    std::string host;
-    
-    int port = get_options(command, host, argc, argv);
+    std::string command, host, port;
+
+    get_options(command, host, port, argc, argv);
     
     //TODO remove
-    std::cout << "Host server is " << host << " Command is " << command << "Port is "<< port << std::endl; 
-    
+    std::cout << "Host server: " << host << std::endl
+                << "Command: " << command << std::endl
+                << "Port: " << port << std::endl; 
+                
+                
+    /* http://beej.us/guide/bgnet/html/single/bgnet.html#getaddrinfo */
+    int status;
+    struct addrinfo hints;
+    struct addrinfo *servinfo;  // will point to the results
+    memset(&hints, 0, sizeof(hints)); // make sure the struct is empty
+    hints.ai_family = AF_UNSPEC;     // don't care IPv4 or IPv6
+    hints.ai_socktype = SOCK_STREAM; // TCP stream sockets
+
+    // get ready to connect
+    status = getaddrinfo(host.c_str(), port.c_str(), &hints, &servinfo);
+                
+                
     int sock = 0, valread;
     struct sockaddr_in serv_addr;
     char buffer[1024] = {0};
@@ -17,13 +31,11 @@ int main(int argc, char** argv) {
         printf("\n * Socket creation error * \n");
         exit(-1);
     }
-  
+      
     memset(&serv_addr, '0', sizeof(serv_addr));
   
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(PORT);
-      
-     //TODO: getaddrinfo() on the host 
      
     // Convert IPv4 and IPv6 addresses from text to binary form
     if(inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)<=0) {
@@ -45,12 +57,12 @@ int main(int argc, char** argv) {
     return 0;
 }
 
-int get_options(std::string& command, std::string& host, int argc, char** argv) {
+void get_options(std::string& command, std::string& host, std::string& port, int argc, char** argv) {
     extern int optind, opterr;
     extern char *optarg;
     opterr = 1; /* set to 0 to disable error message */
       
-    int choice, help = 0, errflag = 0, port = 4513;      
+    int choice, help = 0, errflag = 0;      
     while ((choice = getopt(argc, argv, "c:s:p:h")) != EOF) {
         switch (choice) {
             case 'c':
@@ -62,13 +74,7 @@ int get_options(std::string& command, std::string& host, int argc, char** argv) 
                 if (command.length()) errflag = 1;
                 break;
             case 'p': 
-                port = atoi(strdup(optarg));
-                
-                if (!port) {
-                    perror(optarg);
-                    exit(-1);
-                }
-                
+                port = optarg;
                 break;
             case 'h': 
                 help = 1;
@@ -82,7 +88,6 @@ int get_options(std::string& command, std::string& host, int argc, char** argv) 
         usage();
         exit(0);
     }
-    return port;
 }
 
 void usage() {
