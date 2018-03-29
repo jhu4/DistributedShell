@@ -26,14 +26,16 @@ int main(int argc, char** argv) {
     //1. Client sends user-name to server (but not password)
     send_to_server(sock, user_name());
     
-    //TODO 2. Server responds by sending back unique random number (using rand() and srand()) 
+    //2. Server responds by sending back unique random number (using rand() and srand()) 
+
     receive_from_server(sock, buffer, serv);
+    std::cout<<"Here is my random number from the server: " << buffer << std::endl;
     
-    //TODO 3. Client encrypts using user’s password plus number as key 
-    std::string hashed_encrypted_value = encrypt(unique_number(buffer, serv));
+    //3. Client encrypts using user’s password plus number as key     
+    std::string salted_hash = std::string(crypt("meow", buffer));
     
     //TODO 4. Client sends hashed/encrypted value back to server
-    send_to_server(sock, hashed_encrypted_value);
+    send_to_server(sock, salted_hash);
     
     //TODO 5. Server encrypts using the user’s same password plus number as key   
     //TODO 6. Server compares two hashed/encrypted values, if same then ok
@@ -93,11 +95,6 @@ void receive_from_server(int sock, char* buffer, struct addrinfo* serv) {
         free_exit(serv);
     } else 
         std::cout << buffer << std::endl;
-}
-
-std::string encrypt(int unique_number) {
-    std::string TODO = "TODO";
-    return TODO;
 }
 
 std::string user_name() {

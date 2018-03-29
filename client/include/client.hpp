@@ -14,6 +14,7 @@
 #include <sys/types.h>
 #include <netdb.h>
 #include <iostream>
+#include <crypt.h>
 
 #define MAX_SIZE 1024
 
