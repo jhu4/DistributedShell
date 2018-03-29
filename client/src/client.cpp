@@ -1,4 +1,9 @@
+// Zachary Halzel
+// Jinan Hu
+
 #include "client.hpp"
+
+//TODO take a look at client.c by beej.us and see if there's good stuff
 
 void print_options(std::string host, std::string command, std::string port) {
     std::cout << "Host server: " << host << std::endl
