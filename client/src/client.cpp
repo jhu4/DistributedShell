@@ -23,6 +23,8 @@ int main(int argc, char** argv) {
     
     //TODO 2. Server responds by sending back unique random number (using rand() and srand()) 
     receive_from_server(sock, buffer, serv);
+        
+    send_to_server(sock, user_name());
     
     //TODO 3. Client encrypts using user’s password plus number as key 
     std::string hashed_encrypted_value = encrypt(unique_number(buffer, serv));
@@ -87,7 +89,7 @@ void receive_from_server(int sock, char* buffer, struct addrinfo* serv) {
         perror("recv error");
         free_exit(serv);
     } else 
-        std::cout << buffer << std::endl;
+    std::cout << buffer << std::endl;
 }
 
 std::string encrypt(int unique_number) {

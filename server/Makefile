@@ -1,6 +1,6 @@
 CC      = g++
 CFLAGS  = -Wall -g
-LDFLAGS = -g
+LDFLAGS = -g -lcrypt
 TARGET  = server
 SRCEXT  = cpp
 
