@@ -41,15 +41,19 @@ int main(int argc, char** argv) {
     int bytes_sent = send(sock, command.c_str(), command.length(), 0);
     if (bytes_sent < 0) perror("send");
 
-    if (bytes_sent < command.length()) std::cout << "TODO" << std::endl;
+    if (bytes_sent < command.length()) 
+        std::cout << "TODO: What if less than everything was sent?" << std::endl;
     
     else {
         std::cout << "Command message sent" << std::endl;
         int bytes_received = recv(sock, buffer, MAX_SIZE, 0);
-        if (bytes_received < 0) perror("recv error");
-        std::cout << buffer << std::endl;
+        if (!bytes_received) 
+            std::cout << "Connection has been closed" << std::endl;
+        else if (bytes_received < 0) perror("recv error");
+        else std::cout << buffer << std::endl;
     }
     
+    close(sock); 
     freeaddrinfo(serv);
     return 0;
 }
