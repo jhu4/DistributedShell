@@ -1,3 +1,5 @@
+// Zachary Halzel
+// Jinan Hu
 
 #ifndef PROJECT_1_H
 #define PROJECT_1_H
@@ -12,6 +14,7 @@
 #include <sys/types.h>
 #include <netdb.h>
 #include <iostream>
+#include <crypt.h>
 
 #define MAX_SIZE 1024
 
@@ -23,7 +26,7 @@ void send_to_server(int, std::string);
 int get_sock(std::string host, std::string port, struct addrinfo* serv);
 int unique_number(char* buffer, struct addrinfo* serv);
 void receive_from_server(int sock, char* buffer, struct addrinfo* serv);
- std::string encrypt(int unique_number);
+std::string encrypt(int unique_number);
 std::string user_name();
 
 #endif //PROJECT_1_H
