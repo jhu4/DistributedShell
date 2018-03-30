@@ -28,8 +28,8 @@ int main(int argc, char** argv) {
 	sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
 
   if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1) {
-      std::cerr << "setsockopt" << strerror(errno) << std::endl;
-      exit(EXIT_FAILURE);
+    std::cerr << "setsockopt" << strerror(errno) << std::endl;
+    exit(EXIT_FAILURE);
   }
 
 	// bind it to the port we passed in to getaddrinfo():
@@ -119,8 +119,8 @@ void server_routine(int server_fd) {
 	sigemptyset(&sa.sa_mask);
 	sa.sa_flags = SA_RESTART;
 	if (sigaction(SIGCHLD, &sa, NULL) == -1) {
-	    std::cerr << "sigaction" << strerror(errno) << std::endl;
-	    exit(EXIT_FAILURE);
+	  std::cerr << "sigaction" << strerror(errno) << std::endl;
+	  exit(EXIT_FAILURE);
 	}
 	close(new_socket);
 }
