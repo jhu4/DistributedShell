@@ -107,7 +107,19 @@ void server_routine(int server_fd) {
       exit(0);	
     }  
     std::cout << "Password ok!" << std::endl;	  
-	  //TODO: If the authentication succeeds, send the result of the terminal
+	  // TODO: If the authentication succeeds, send the result of the terminal
+	  
+    // tokenize the command
+	  
+    // close stdin close(1);
+	  
+    // close stderr close(2);
+	  
+    // dup2(1, socket);
+	  
+    // dup2(2, socket);
+	  
+	  // run execvp
 	  
 	  if (send(new_socket , "msg", strlen("msg") , 0 ) == -1) {
 	  	std::cerr << "child process: invalid rend" << std::endl;
