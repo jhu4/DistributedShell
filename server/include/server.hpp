@@ -19,9 +19,11 @@
 #include <sys/wait.h>
 #include <signal.h>
 #include <crypt.h>
+#include <unordered_map>
 
 #define PORT "4513"
 #define DIRECTORY "."
+#define MAX_SIZE 1024
 
 void usage();
 void server_routine(int server_fd);
@@ -31,5 +33,6 @@ void sigchld_handler(int s);
 char* get_hashcode(char* rand);
 void set_hints(struct addrinfo &hints);
 void receive_from_client(int sock, char* buffer);
+int authenticate(std::string user_name, std::string hashed_password, std::string random_num);
 
 #endif //PROJECT_1_H

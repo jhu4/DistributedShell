@@ -1,5 +1,5 @@
 CC      = g++
-CFLAGS  = -Wall -g
+CFLAGS  = -Wall -g -std=c++14
 LDFLAGS = -g -lcrypt
 TARGET  = dsh
 SRCEXT  = cpp

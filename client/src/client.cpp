@@ -3,23 +3,18 @@
 
 #include "client.hpp"
 
-//TODO take a look at client.c by beej.us and see if there's good stuff
-
-void print_options(std::string host, std::string command, std::string port) {
-  std::cout << "Host server: " << host << std::endl << "Command: " 
-  << command << std::endl << "Port: " << port << std::endl;
-}
-
-char* get_hashcode(char* rand) {
-	return crypt("meow", rand);
-}
+static std::unordered_map<std::string, std::string> passwords = { 
+  {"zdhalzel", "meow"},
+  {"dorothy", "12345"}
+};
 
 int main(int argc, char** argv) {
   std::string command, host, port;
 
   get_options(command, host, port, argc, argv);
 
-  print_options(host, command, port); //TODO remove, just for testing
+   std::cout << "Host server: " << host << std::endl << "Command: " 
+    << command << std::endl << "Port: " << port << std::endl; //TODO remove, just for testing
 
   struct addrinfo* serv = NULL;  // will point to the results
   int sock = get_sock(host, port, serv);
@@ -38,7 +33,7 @@ int main(int argc, char** argv) {
 
   std::cout<<"3. Client encrypts using user’s password plus number as key \n" << std::endl;  
   
-  std::string salted_hash = std::string(crypt("meow", buffer));
+  std::string salted_hash = get_hashcode(buffer);
 
   std::cout<<"4. Client sends hashed/encrypted value back to server\n" << std::endl;
   send_to_server(sock, salted_hash);
@@ -83,6 +78,11 @@ int get_sock(std::string host, std::string port, struct addrinfo* serv) {
   return sock;
 }
 
+char* get_hashcode(char* rand) {
+  std::string username(getlogin());
+	return crypt(passwords[username].c_str(), rand);
+}
+
 int unique_number(char* buffer, struct addrinfo* serv) {
   int unique_num = atoi(buffer);
   if (unique_num) return unique_num;
@@ -106,19 +106,33 @@ void receive_from_server(int sock, char* buffer, struct addrinfo* serv) {
 }
 
 std::string user_name() {
-  char * uname = getlogin();
+  char* uname = getlogin();
   std::string uname_string(uname);
   std::cout << "User name:" << uname << std::endl;
   return uname_string;
 }
 
 void send_to_server(int sock, std::string msg) {
-  unsigned int bytes_sent = send(sock, msg.c_str(), msg.length(), 0);
-  if (bytes_sent < 0) perror("send");
-  if (bytes_sent < msg.length()) 
-      std::cout << "TODO: What if less than everything was sent?" << std::endl;
+  int length = msg.length();
+  int bytes_sent = send_all(sock, (char*) msg.c_str(), &length);
+  if (bytes_sent) perror("send");
   else std::cout << "Message sent: " << msg << std::endl;
 }
+
+int send_all(int sock, char* buf, int* len) {
+  //http://beej.us/guide/bgnet/html/single/bgnet.html
+    int total = 0;        // how many bytes we've sent
+    int bytesleft = *len; // how many we have left to send
+    int n;
+    while(total < *len) {
+        n = send(sock, buf+total, bytesleft, 0);
+        if (n == -1) { break; }
+        total += n;
+        bytesleft -= n;
+    }
+    *len = total; // return number actually sent here
+    return n==-1?-1:0; // return -1 on failure, 0 on success
+} 
 
 void free_exit(struct addrinfo* serv) {
   freeaddrinfo(serv);
