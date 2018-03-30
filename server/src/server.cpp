@@ -1,6 +1,9 @@
 #include "server.hpp"
 
-//TODO add hashtable of users to passwords
+static std::unordered_map<std::string, std::string> passwords = { 
+  {"zdhalzel", "meow"},
+  {"dorothy", "12345"}
+};
 
 int main(int argc, char** argv) {
 	struct addrinfo hints, *res;
@@ -85,7 +88,7 @@ void server_routine(int server_fd) {
     // receive user_name
     receive_from_client(new_socket, buffer);
 	  std::cout << "This should be the username: " << buffer << std::endl;
-
+    std::string username(buffer);
     
     // send the random string
 	  if (send(new_socket , random_num.c_str(), random_num.length(), 0) == -1) {
@@ -97,11 +100,13 @@ void server_routine(int server_fd) {
 	  // receive the hashed password
 	  receive_from_client(new_socket, buffer);
 	  std::cout << "This should be the hashed password: " << buffer << std::endl;
-
-    //TODO: hashmap from user-name to password
     
-	  //TODO: compare the two passwords
-	  
+    std::string hashed_password(buffer);
+    if (!authenticate(username, hashed_password, random_num)) {
+      std::cout << "Hey, next time use the right password dummy!" << std::endl;
+      exit(0);	
+    }  
+    std::cout << "Password ok!" << std::endl;	  
 	  //TODO: If the authentication succeeds, send the result of the terminal
 	  
 	  if (send(new_socket , "msg", strlen("msg") , 0 ) == -1) {
@@ -120,6 +125,14 @@ void server_routine(int server_fd) {
 	close(new_socket);
 }
 
+int authenticate(std::string user_name, std::string hashed_password, std::string random_num) {
+  char* rand = (char*) random_num.c_str();
+  std::string server_password(get_hashcode(rand));
+  
+  std::cout<< "username:" << user_name << "server hashed " << server_password << "hashed: "<< hashed_password << std::endl;
+  return !passwords[user_name].compare(hashed_password);
+}
+
 void receive_from_client(int sock, char* buffer) {
   memset(buffer, 0, MAX_SIZE);
   int bytes_recvd;
@@ -134,7 +147,8 @@ void receive_from_client(int sock, char* buffer) {
 }
 
 char* get_hashcode(char* rand) {
-	return crypt("meow", rand);
+  std::string username(getlogin());
+	return crypt(passwords[username].c_str(), rand);
 }
 
 void get_options(std::string& directory, std::string& port, int argc, char** argv) {

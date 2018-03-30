@@ -3,23 +3,18 @@
 
 #include "client.hpp"
 
-//TODO take a look at client.c by beej.us and see if there's good stuff
-
-void print_options(std::string host, std::string command, std::string port) {
-  std::cout << "Host server: " << host << std::endl << "Command: " 
-  << command << std::endl << "Port: " << port << std::endl;
-}
-
-char* get_hashcode(char* rand) {
-	return crypt("meow", rand);
-}
+static std::unordered_map<std::string, std::string> passwords = { 
+  {"zdhalzel", "meow"},
+  {"dorothy", "12345"}
+};
 
 int main(int argc, char** argv) {
   std::string command, host, port;
 
   get_options(command, host, port, argc, argv);
 
-  print_options(host, command, port); //TODO remove, just for testing
+   std::cout << "Host server: " << host << std::endl << "Command: " 
+    << command << std::endl << "Port: " << port << std::endl; //TODO remove, just for testing
 
   struct addrinfo* serv = NULL;  // will point to the results
   int sock = get_sock(host, port, serv);
@@ -38,7 +33,7 @@ int main(int argc, char** argv) {
 
   std::cout<<"3. Client encrypts using user’s password plus number as key \n" << std::endl;  
   
-  std::string salted_hash = std::string(crypt("meow", buffer));
+  std::string salted_hash = get_hashcode(buffer);
 
   std::cout<<"4. Client sends hashed/encrypted value back to server\n" << std::endl;
   send_to_server(sock, salted_hash);
@@ -81,6 +76,11 @@ int get_sock(std::string host, std::string port, struct addrinfo* serv) {
     return -1;
   }
   return sock;
+}
+
+char* get_hashcode(char* rand) {
+  std::string username(getlogin());
+	return crypt(passwords[username].c_str(), rand);
 }
 
 int unique_number(char* buffer, struct addrinfo* serv) {

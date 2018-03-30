@@ -15,6 +15,7 @@
 #include <netdb.h>
 #include <iostream>
 #include <crypt.h>
+#include <unordered_map>
 
 #define MAX_SIZE 1024
 
@@ -29,5 +30,6 @@ void receive_from_server(int sock, char* buffer, struct addrinfo* serv);
 std::string encrypt(int unique_number);
 std::string user_name();
 int send_all(int sock, char *buf, int *len);
+char* get_hashcode(char* rand);
 
 #endif //PROJECT_1_H
