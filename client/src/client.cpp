@@ -106,19 +106,33 @@ void receive_from_server(int sock, char* buffer, struct addrinfo* serv) {
 }
 
 std::string user_name() {
-  char * uname = getlogin();
+  char* uname = getlogin();
   std::string uname_string(uname);
   std::cout << "User name:" << uname << std::endl;
   return uname_string;
 }
 
 void send_to_server(int sock, std::string msg) {
-  unsigned int bytes_sent = send(sock, msg.c_str(), msg.length(), 0);
-  if (bytes_sent < 0) perror("send");
-  if (bytes_sent < msg.length()) 
-      std::cout << "TODO: What if less than everything was sent?" << std::endl;
+  int length = msg.length();
+  int bytes_sent = send_all(sock, (char*) msg.c_str(), &length);
+  if (bytes_sent) perror("send");
   else std::cout << "Message sent: " << msg << std::endl;
 }
+
+int send_all(int sock, char* buf, int* len) {
+  //http://beej.us/guide/bgnet/html/single/bgnet.html
+    int total = 0;        // how many bytes we've sent
+    int bytesleft = *len; // how many we have left to send
+    int n;
+    while(total < *len) {
+        n = send(sock, buf+total, bytesleft, 0);
+        if (n == -1) { break; }
+        total += n;
+        bytesleft -= n;
+    }
+    *len = total; // return number actually sent here
+    return n==-1?-1:0; // return -1 on failure, 0 on success
+} 
 
 void free_exit(struct addrinfo* serv) {
   freeaddrinfo(serv);

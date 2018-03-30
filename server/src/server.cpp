@@ -121,9 +121,10 @@ void server_routine(int server_fd) {
 }
 
 void receive_from_client(int sock, char* buffer) {
-  int flag;
-  while (!(flag = recv(sock, buffer, SO_SNDBUF, 0))) {
-    if (flag == -1) {
+  memset(buffer, 0, MAX_SIZE);
+  int bytes_recvd;
+  while (!(bytes_recvd = read(sock, buffer, MAX_SIZE))) {
+    if (bytes_recvd == -1) {
       close(sock);
       std::cerr << "child process: invalid recv" << std::endl;
       exit(EXIT_FAILURE);

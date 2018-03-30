@@ -22,6 +22,7 @@
 
 #define PORT "4513"
 #define DIRECTORY "."
+#define MAX_SIZE 1024
 
 void usage();
 void server_routine(int server_fd);
