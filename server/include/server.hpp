@@ -30,7 +30,7 @@ void server_routine(int server_fd);
 void get_options(std::string& directory, std::string& port, int argc, char** argv);
 void change_dir(std::string directory);
 void sigchld_handler(int s);
-char* get_hashcode(char* rand);
+char* get_hashcode(char* rand, std::string username);
 void set_hints(struct addrinfo &hints);
 void receive_from_client(int sock, char* buffer);
 int authenticate(std::string user_name, std::string hashed_password, std::string random_num);

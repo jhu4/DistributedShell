@@ -125,12 +125,13 @@ void server_routine(int server_fd) {
 	close(new_socket);
 }
 
-int authenticate(std::string user_name, std::string hashed_password, std::string random_num) {
+int authenticate(std::string username, std::string hashed_password, std::string random_num) {
   char* rand = (char*) random_num.c_str();
-  std::string server_password(get_hashcode(rand));
+  std::string server_password(get_hashcode(rand, username));
   
-  std::cout<< "username:" << user_name << "server hashed " << server_password << "hashed: "<< hashed_password << std::endl;
-  return !passwords[user_name].compare(hashed_password);
+
+  std::cout<< "server password:" << server_password << "\nclient hashed: "<< hashed_password << std::endl;
+  return !server_password.compare(hashed_password);
 }
 
 void receive_from_client(int sock, char* buffer) {
@@ -146,8 +147,7 @@ void receive_from_client(int sock, char* buffer) {
   sleep(1);
 }
 
-char* get_hashcode(char* rand) {
-  std::string username(getlogin());
+char* get_hashcode(char* rand, std::string username) {
 	return crypt(passwords[username].c_str(), rand);
 }
 
