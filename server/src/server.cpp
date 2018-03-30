@@ -1,48 +1,22 @@
 #include "server.hpp"
-#include <stdio.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <unistd.h>
-
-#include <iostream>
-#include <string>
-#include <sstream>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <sys/wait.h>
-#include <signal.h>
-#include <crypt.h>
 
 //TODO add hashtable of users to passwords
 
-void usage();
-void server_routine(int server_fd);
-void get_options(std::string& directory, std::string& port, int argc, char** argv);
-void change_dir(std::string directory);
-void sigchld_handler(int s);
-char* get_hashcode(char* rand);
-
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv) {
 	struct addrinfo hints, *res;
 	int sockfd;
 	int yes = 1;
-	std::string port = "4513", directory = ".";
+	std::string port = PORT, directory = DIRECTORY;
 	srand(time(NULL));
 
 	get_options(directory, port, argc, argv);
 
-	std::cout << "port:" << port << "\tdirectory" << directory << std::endl;
+	std::cout << "port: " << port << "\tdirectory: " << directory << std::endl;
 
 	memset(&hints, 0, sizeof hints);
-	hints.ai_family = AF_UNSPEC;  // use IPv4 or IPv6, whichever
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_flags = AI_PASSIVE;     // fill in my IP for me
-
+	
+	set_hints(hints);
+	
 	if (getaddrinfo(NULL, port.c_str(), &hints, &res)) {
 		std::cerr << "getaddrinfo" << strerror(errno) << std::endl;
 		exit(EXIT_FAILURE);
@@ -70,10 +44,14 @@ int main(int argc, char** argv)
   	server_routine(sockfd); 	
   }
 
-
   close(sockfd);
-
   return 0;
+}
+
+void set_hints(struct addrinfo &hints) {
+  hints.ai_family = AF_UNSPEC;  // use IPv4 or IPv6, whichever
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_PASSIVE;     // fill in my IP for me
 }
 
 void server_routine(int server_fd) {
@@ -88,53 +66,47 @@ void server_routine(int server_fd) {
     std::cerr << "accept() " << strerror(errno) << std::endl;
     exit(EXIT_FAILURE);
 	}
-
 	
-	std::cout << "received a request from " << address.__ss_align << std::endl;
-  if ((pid = fork()) == 0) {
-  	//children
-  	int flag;
+	std::cout << "Received a request from: " << address.__ss_align << std::endl;
+	
+	pid = fork();
+	
+	if (pid < 0) {
+	  std::cerr << "fork() error " << strerror(errno) << std::endl;
+	  exit(EXIT_FAILURE);
+	}
+	
+  else if (pid == 0) { //children  	
   	std::stringstream ss;
   	ss << rand();
   	std::string random_num = ss.str();
 
   	close(server_fd);
     // receive user_name
-	  while (!(flag = recv(new_socket, buffer, SO_SNDBUF, 0))) {
-	  	if (flag == -1) {
-	  		close(new_socket);
-				std::cerr << "child process: invalid recv" << std::endl;
-				exit(EXIT_FAILURE);
-	  	}
-	  }
-	  std::cout << "recv 1st " << buffer << std::endl;
+    receive_from_client(new_socket, buffer);
+	  std::cout << "This should be the username: " << buffer << std::endl;
+
     
-    sleep(1);
     // send the random string
 	  if (send(new_socket , random_num.c_str(), random_num.length(), 0) == -1) {
 	  	std::cerr << "child process: invalid rend" << std::endl;
 	  }
 	  std::cout << "Here is the number I sent:" << random_num << std::endl;
+    sleep(1);
 	  
-	  
-	  sleep(1);
 	  // receive the hashed password
-	  while (!(flag = recv(new_socket, buffer, SO_SNDBUF, 0))) {
-	  	if (flag == -1) {
-	  		close(new_socket);
-				std::cerr << "child process: invalid recv" << std::endl;
-				exit(EXIT_FAILURE);
-	  	}
-	  }
+	  receive_from_client(new_socket, buffer);
+	  std::cout << "This should be the hashed password: " << buffer << std::endl;
 
-	  std::cout << "recv 2nd " << buffer << std::endl;
-	  sleep(1);
-  // TODO send the result of the terminal
+    //TODO: hashmap from user-name to password
+    
+	  //TODO: compare the two passwords
+	  
+	  //TODO: If the authentication succeeds, send the result of the terminal
+	  
 	  if (send(new_socket , "msg", strlen("msg") , 0 ) == -1) {
 	  	std::cerr << "child process: invalid rend" << std::endl;
-	  }
-		  
-
+	  }  
 	  exit(0);
   }
 
@@ -146,6 +118,18 @@ void server_routine(int server_fd) {
 	    exit(EXIT_FAILURE);
 	}
 	close(new_socket);
+}
+
+void receive_from_client(int sock, char* buffer) {
+  int flag;
+  while (!(flag = recv(sock, buffer, SO_SNDBUF, 0))) {
+    if (flag == -1) {
+      close(sock);
+      std::cerr << "child process: invalid recv" << std::endl;
+      exit(EXIT_FAILURE);
+    }
+  }
+  sleep(1);
 }
 
 char* get_hashcode(char* rand) {
@@ -182,7 +166,7 @@ void get_options(std::string& directory, std::string& port, int argc, char** arg
 void usage() {
     std::cout<<"server [flags], where flags are:\n"
 								"-p # port to serve on (default is 4513)\n"
-								"-d dir directory to serve out of (default is /home/clay-pool/dsh)\n"
+								"-d dir directory to serve out of (default is cwd)\n"
 								"-h this help message\n" << std::endl;
     exit(0);
 }
