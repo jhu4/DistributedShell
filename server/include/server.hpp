@@ -20,6 +20,7 @@
 #include <signal.h>
 #include <crypt.h>
 #include <unordered_map>
+#include <vector>
 
 #define PORT "4513"
 #define DIRECTORY "."
@@ -34,5 +35,6 @@ char* get_hashcode(char* rand, std::string username);
 void set_hints(struct addrinfo &hints);
 void receive_from_client(int sock, char* buffer);
 int authenticate(std::string user_name, std::string hashed_password, std::string random_num);
+void execute(char* cmd);
 
 #endif //PROJECT_1_H

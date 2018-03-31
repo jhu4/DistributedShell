@@ -106,24 +106,27 @@ void server_routine(int server_fd) {
       std::cout << "Hey, next time use the right password dummy!" << std::endl;
       exit(0);	
     }  
-    std::cout << "Password ok!" << std::endl;	  
-	  // TODO: If the authentication succeeds, send the result of the terminal
-	  
-    // tokenize the command
-	  
-    // close stdin close(1);
-	  
-    // close stderr close(2);
-	  
-    // dup2(1, socket);
-	  
-    // dup2(2, socket);
-	  
-	  // run execvp
-	  
-	  if (send(new_socket , "msg", strlen("msg") , 0 ) == -1) {
-	  	std::cerr << "child process: invalid rend" << std::endl;
-	  }  
+
+    //receive the cmd
+    receive_from_client(new_socket, buffer);
+    std::cout << "Password ok!" << std::endl;
+	  char* cmd = strdup(buffer);
+
+    // if (dup2(new_socket, 1) == -1 || dup2(new_socket, 2) == -1) {
+    //   std::cerr << "dup2:" << std::endl;
+    // }
+	  close(0);
+    close(1);
+    // close(2);
+
+
+    if ((dup(new_socket) != 0) | (dup(new_socket) != 1)) {
+      std::cerr << "dup2:" << std::endl;
+    }
+
+
+    execute(cmd);
+	  std::cerr << "This should not happen" << std::endl;
 	  exit(0);
   }
 
@@ -137,10 +140,34 @@ void server_routine(int server_fd) {
 	close(new_socket);
 }
 
+void execute(char* cmd) {
+  int argv_size = 100;
+  char *argv[argv_size];
+  memset(argv, 0, argv_size);
+  char *token;
+  token = strtok(cmd, " ");
+  
+  int args_len;
+  for (args_len = 0; args_len < argv_size && token != NULL; args_len++) {
+      argv[args_len] = strdup(token);
+      token = strtok(NULL, " ");
+  }
+  argv[args_len] = NULL;
+
+  std::cout<<args_len << "<args_len" << std::endl;
+
+  for (int i = 0; i <= args_len; i++) {
+    std::cout << "i is " << i << "\targv[i] " << argv[i] << std::endl;
+  }
+
+  if (execvp(argv[0], argv)) {
+    std::cerr << "execvp:" << strerror(errno) << std::endl;
+  }
+}
+
 int authenticate(std::string username, std::string hashed_password, std::string random_num) {
   char* rand = (char*) random_num.c_str();
   std::string server_password(get_hashcode(rand, username));
-  
 
   std::cout<< "server password:" << server_password << "\nclient hashed: "<< hashed_password << std::endl;
   return !server_password.compare(hashed_password);
