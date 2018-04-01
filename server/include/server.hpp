@@ -23,12 +23,11 @@
 #include <vector>
 
 #define PORT "4513"
-#define DIRECTORY "."
 #define MAX_SIZE 1024
 
 void usage();
 void server_routine(int server_fd);
-void get_options(std::string& directory, std::string& port, int argc, char** argv);
+void get_options(char* directory, std::string& port, int argc, char** argv);
 void change_dir(std::string directory);
 void sigchld_handler(int s);
 char* get_hashcode(char* rand, std::string username);

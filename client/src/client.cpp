@@ -1,5 +1,6 @@
-// Zachary Halzel
-// Jinan Hu
+/**
+  @author: Zach Halzel, Jinan Hu
+**/
 
 #include "client.hpp"
 
@@ -12,42 +13,32 @@ int main(int argc, char** argv) {
   std::string command, host, port;
 
   get_options(command, host, port, argc, argv);
-
-   std::cout << "Host server: " << host << std::endl << "Command: " 
-    << command << std::endl << "Port: " << port << std::endl; //TODO remove, just for testing
-
-  struct addrinfo* serv = NULL;  // will point to the results
+  struct addrinfo* serv = NULL; 
   int sock = get_sock(host, port, serv);
 
   // Begin communication
   char buffer[MAX_SIZE] = {0};
-  // std::cout << "1. Client sends user-name to server (but not password)\n" << std::endl;
+  //Client sends user-name to server
   send_to_server(sock, user_name());
-  sleep(1);
-  // std::cout << "2. Server responds by sending back unique random number (using rand() and srand()) \n" << std::endl;
+
+  // Server responds by sending back unique random number
   receive_from_server(sock, buffer, serv);
-  // std::cout<<"Here is my random number from the server: " << buffer << std::endl;
+  
 
-  // std::cout << "Here is the hash code: " << get_hashcode(buffer) << std::endl;
-  sleep(1);
-
-  // std::cout<<"3. Client encrypts using user’s password plus number as key \n" << std::endl;  
+  //Client encrypts using user’s password plus number as key
   
   std::string salted_hash = get_hashcode(buffer);
 
-  // std::cout<<"4. Client sends hashed/encrypted value back to server\n" << std::endl;
+  // Client sends hashed/encrypted value back to server
   send_to_server(sock, salted_hash);
-  sleep(1);    
-  // std::cout<<"5. Server encrypts using the user’s same password plus number as key   \n" << std::endl;
-  // std::cout<<"6. Server compares two hashed/encrypted values, if same then ok\n" << std::endl;
   
-  send_to_server(sock, command);
-  sleep(1);
+  //recieve the result of hashed code
+  receive_from_server(sock, buffer, serv);
+  std::cout << buffer << std::endl;
 
-  while (1) {
-    receive_from_server(sock, buffer, serv);
-  }
-  
+  send_to_server(sock, command);
+
+  receive_from_server(sock, buffer, serv);
   std::cout << buffer << std::endl;
 
   close(sock); 
@@ -106,8 +97,6 @@ void receive_from_server(int sock, char* buffer, struct addrinfo* serv) {
       free_exit(serv);
     } 
   }
-  sleep(1);
-  std::cout << buffer << std::endl;
 }
 
 std::string user_name() {
@@ -121,7 +110,6 @@ void send_to_server(int sock, std::string msg) {
   int length = msg.length();
   int bytes_sent = send_all(sock, (char*) msg.c_str(), &length);
   if (bytes_sent) perror("send");
-  else std::cout << "Message sent: " << msg << std::endl;
 }
 
 int send_all(int sock, char* buf, int* len) {

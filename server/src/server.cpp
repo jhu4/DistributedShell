@@ -1,5 +1,9 @@
 #include "server.hpp"
 
+/**
+  @author: Zach Halzel, Jinan Hu
+**/
+
 static std::unordered_map<std::string, std::string> passwords = { 
   {"zdhalzel", "meow"},
   {"dorothy", "12345"}
@@ -9,12 +13,21 @@ int main(int argc, char** argv) {
 	struct addrinfo hints, *res;
 	int sockfd;
 	int yes = 1;
-	std::string port = PORT, directory = DIRECTORY;
+	std::string port = PORT;
+  char directory[MAX_SIZE];
+  
+  strcpy(directory, get_current_dir_name());
+
 	srand(time(NULL));
 
 	get_options(directory, port, argc, argv);
 
 	std::cout << "port: " << port << "\tdirectory: " << directory << std::endl;
+
+  if (chdir(directory)) {
+    std::cerr << "chdir: " << strerror(errno) << std::endl;
+    exit(EXIT_FAILURE);
+  }
 
 	memset(&hints, 0, sizeof hints);
 	
@@ -43,6 +56,8 @@ int main(int argc, char** argv) {
   	exit(EXIT_FAILURE);
   }
 
+  std::cout << "Accepting connections" << std::endl;
+
   while (true) {
   	server_routine(sockfd); 	
   }
@@ -70,7 +85,7 @@ void server_routine(int server_fd) {
     exit(EXIT_FAILURE);
 	}
 	
-	std::cout << "Received a request from: " << address.__ss_align << std::endl;
+	std::cout << "Connection request received" << std::endl;
 	
 	pid = fork();
 	
@@ -78,8 +93,8 @@ void server_routine(int server_fd) {
 	  std::cerr << "fork() error " << strerror(errno) << std::endl;
 	  exit(EXIT_FAILURE);
 	}
-	
   else if (pid == 0) { //children  	
+    std::cout << "Forked child" << std::endl;
   	std::stringstream ss;
   	ss << rand();
   	std::string random_num = ss.str();
@@ -87,46 +102,41 @@ void server_routine(int server_fd) {
   	close(server_fd);
     // receive user_name
     receive_from_client(new_socket, buffer);
-	  std::cout << "This should be the username: " << buffer << std::endl;
     std::string username(buffer);
+    std::cout << "received username: " << username << std::endl;
     
     // send the random string
 	  if (send(new_socket , random_num.c_str(), random_num.length(), 0) == -1) {
 	  	std::cerr << "child process: invalid rend" << std::endl;
 	  }
-	  std::cout << "Here is the number I sent:" << random_num << std::endl;
-    sleep(1);
 	  
 	  // receive the hashed password
 	  receive_from_client(new_socket, buffer);
-	  std::cout << "This should be the hashed password: " << buffer << std::endl;
     
     std::string hashed_password(buffer);
     if (!authenticate(username, hashed_password, random_num)) {
-      std::cout << "Hey, next time use the right password dummy!" << std::endl;
+      char string[] = "Hey, next time use the right password dummy!";
+      send(new_socket, string, strlen(string) ,0);
       exit(0);	
-    }  
+    }
+    else {
+      char string[] = "password ok";
+      send(new_socket, string, strlen(string) ,0);
+    }
 
     //receive the cmd
     receive_from_client(new_socket, buffer);
-    std::cout << "Password ok!" << std::endl;
 	  char* cmd = strdup(buffer);
+    std::cout << "command: " << cmd << std::endl;
 
-    // if (dup2(new_socket, 1) == -1 || dup2(new_socket, 2) == -1) {
-    //   std::cerr << "dup2:" << std::endl;
-    // }
 	  close(0);
     close(1);
-    // close(2);
 
-
-    if ((dup(new_socket) != 0) | (dup(new_socket) != 1)) {
-      std::cerr << "dup2:" << std::endl;
+    if (dup2(new_socket, 1) == -1 || dup2(new_socket, 2) == -1) {
+      std::cerr << "dup2:" << strerror(errno) << std::endl;
     }
 
-
     execute(cmd);
-	  std::cerr << "This should not happen" << std::endl;
 	  exit(0);
   }
 
@@ -154,12 +164,6 @@ void execute(char* cmd) {
   }
   argv[args_len] = NULL;
 
-  std::cout<<args_len << "<args_len" << std::endl;
-
-  for (int i = 0; i <= args_len; i++) {
-    std::cout << "i is " << i << "\targv[i] " << argv[i] << std::endl;
-  }
-
   if (execvp(argv[0], argv)) {
     std::cerr << "execvp:" << strerror(errno) << std::endl;
   }
@@ -169,7 +173,6 @@ int authenticate(std::string username, std::string hashed_password, std::string 
   char* rand = (char*) random_num.c_str();
   std::string server_password(get_hashcode(rand, username));
 
-  std::cout<< "server password:" << server_password << "\nclient hashed: "<< hashed_password << std::endl;
   return !server_password.compare(hashed_password);
 }
 
@@ -183,14 +186,13 @@ void receive_from_client(int sock, char* buffer) {
       exit(EXIT_FAILURE);
     }
   }
-  sleep(1);
 }
 
 char* get_hashcode(char* rand, std::string username) {
 	return crypt(passwords[username].c_str(), rand);
 }
 
-void get_options(std::string& directory, std::string& port, int argc, char** argv) {
+void get_options(char* directory, std::string& port, int argc, char** argv) {
     extern char *optarg;
     int choice, help = 0;
 
@@ -200,7 +202,7 @@ void get_options(std::string& directory, std::string& port, int argc, char** arg
         	port = std::string(optarg);
           break;
         case 'd':
-          directory = std::string(optarg);
+          strcpy(directory, optarg);
           break;
         case 'h': 
           help++;
