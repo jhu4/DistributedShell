@@ -4,46 +4,77 @@
 
 #include "client.hpp"
 
+static int test = 0;
+
 static std::unordered_map<std::string, std::string> passwords = { 
   {"zdhalzel", "meow"},
   {"dorothy", "12345"}
 };
 
 int main(int argc, char** argv) {
+  struct timeval tv;
+  long start_time, end_time;
+    
   std::string command, host, port;
+  char buffer[MAX_SIZE] = {0};
 
   get_options(command, host, port, argc, argv);
   struct addrinfo* serv = NULL; 
+  
+  if(test) {
+    if (gettimeofday(&tv, NULL) != 0) printf("Error computing time");
+    start_time = get_milliseconds(tv); 
+  } 
+  
   int sock = get_sock(host, port, serv);
 
   // Begin communication
-  char buffer[MAX_SIZE] = {0};
-  //Client sends user-name to server
+  // Client sends user-name to server
+
   send_to_server(sock, user_name());
 
   // Server responds by sending back unique random number
   receive_from_server(sock, buffer, serv);
-  
 
   //Client encrypts using user’s password plus number as key
-  
   std::string salted_hash = get_hashcode(buffer);
 
   // Client sends hashed/encrypted value back to server
   send_to_server(sock, salted_hash);
-  
-  //recieve the result of hashed code
-  receive_from_server(sock, buffer, serv);
-  std::cout << buffer << std::endl;
 
+  //receive the result of authentication
+  receive_from_server(sock, buffer, serv);
+  std::cout <<"Authentication: " << buffer << std::endl;      
+
+  if (test) {
+    if (gettimeofday(&tv, NULL) != 0) printf("Error computing time");
+    end_time = get_milliseconds(tv);
+    write_file(end_time - start_time);
+    return 0;
+  }  
+
+  // send the command
   send_to_server(sock, command);
 
   receive_from_server(sock, buffer, serv);
   std::cout << buffer << std::endl;
-
+  
   close(sock); 
   freeaddrinfo(serv);
+  
   return 0;
+}
+
+void write_file(long time) {
+  std::ofstream file; // out file stream
+  file.open("latency.txt", std::ios::app);
+  file << time << std::endl;
+}  
+
+long get_milliseconds(struct timeval tv) {
+  long seconds = tv.tv_sec;
+  long microseconds = tv.tv_usec;
+  return (seconds * 1000) + (microseconds / 1000);
 }
 
 int get_sock(std::string host, std::string port, struct addrinfo* serv) {  
@@ -138,7 +169,7 @@ void get_options(std::string& command, std::string& host, std::string& port, int
   opterr = 1; /* set to 0 to disable error message */
     
   int choice, help = 0, errflag = 0, port_change = 0;      
-  while ((choice = getopt(argc, argv, "c:s:p:h")) != EOF) {
+  while ((choice = getopt(argc, argv, "c:s:p:th")) != EOF) {
     switch (choice) {
       case 'c':
         command = optarg;
@@ -155,6 +186,9 @@ void get_options(std::string& command, std::string& host, std::string& port, int
       case 'h': 
         help = 1;
         break;
+      case 't':
+        test = 1;
+        break;
       case '?': 
         usage();
         exit(-1);
@@ -165,6 +199,7 @@ void get_options(std::string& command, std::string& host, std::string& port, int
     exit(0);
   }
   if (!port_change) port = "4513";
+  if (test) std::cout << "Testing latency" << std::endl;
 }
 
 void usage() {
@@ -173,6 +208,7 @@ void usage() {
   std::cout<<"\t{-c command}    command to execute remotely"<<std::endl;
   std::cout<<"\t{-s host}       host serv is on"<<std::endl;
   std::cout<<"\t[-p #]          port serv is on (default is 4513)"<<std::endl;
+  std::cout<<"\t[-t #]          test latency"<<std::endl;
   std::cout<<"\t[-h]            this help message"<<std::endl;
   exit(0);
 }

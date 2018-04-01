@@ -9,6 +9,8 @@ static std::unordered_map<std::string, std::string> passwords = {
   {"dorothy", "12345"}
 };
 
+static int test = 0;
+
 int main(int argc, char** argv) {
 	struct addrinfo hints, *res;
 	int sockfd;
@@ -124,6 +126,8 @@ void server_routine(int server_fd) {
       send(new_socket, string, strlen(string) ,0);
     }
 
+    if (test) exit(0);
+    
     //receive the cmd
     receive_from_client(new_socket, buffer);
 	  char* cmd = strdup(buffer);
@@ -162,6 +166,7 @@ void execute(char* cmd) {
       argv[args_len] = strdup(token);
       token = strtok(NULL, " ");
   }
+  
   argv[args_len] = NULL;
 
   if (execvp(argv[0], argv)) {
@@ -196,7 +201,7 @@ void get_options(char* directory, std::string& port, int argc, char** argv) {
     extern char *optarg;
     int choice, help = 0;
 
-    while ((choice = getopt(argc, argv, "p:d:h")) != EOF) {
+    while ((choice = getopt(argc, argv, "p:d:th")) != EOF) {
       switch (choice) {
         case 'p':
         	port = std::string(optarg);
@@ -207,6 +212,9 @@ void get_options(char* directory, std::string& port, int argc, char** argv) {
         case 'h': 
           help++;
           break;
+        case 't':
+          test = 1;
+          break;
         case '?': 
           usage();
           exit(-1);
@@ -216,13 +224,14 @@ void get_options(char* directory, std::string& port, int argc, char** argv) {
         usage();
         exit(0);
     }
+    if (test) std::cout << "Latency Test mode" << std::endl;
 }
-
 
 void usage() {
     std::cout<<"server [flags], where flags are:\n"
 								"-p # port to serve on (default is 4513)\n"
 								"-d dir directory to serve out of (default is cwd)\n"
+								"-t latency test\n"
 								"-h this help message\n" << std::endl;
     exit(0);
 }

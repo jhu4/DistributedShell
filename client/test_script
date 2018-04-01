@@ -1,0 +1,5 @@
+rm latency.txt
+for run in {1..100}
+do
+	make && ./dsh -s localhost -t -c ""
+done
