@@ -35,27 +35,34 @@ int main(int argc, char** argv) {
 	
 	set_hints(hints);
 	
-	if (getaddrinfo(NULL, port.c_str(), &hints, &res)) {
-		std::cerr << "getaddrinfo" << strerror(errno) << std::endl;
-		exit(EXIT_FAILURE);
-	}
+  do {
+  	if (getaddrinfo(NULL, port.c_str(), &hints, &res)) {
+  		std::cerr << "getaddrinfo\t" << strerror(errno) << std::endl;
+  		exit(EXIT_FAILURE);
+  	}
 
-	sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+  	if ((sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol)) == -1) {
+      std::cerr << "socket\t" << strerror(errno) << std::endl;
+      continue;
+    }
 
-  if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1) {
-    std::cerr << "setsockopt" << strerror(errno) << std::endl;
-    exit(EXIT_FAILURE);
-  }
+    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1) {
+      std::cerr << "setsockopt\t" << strerror(errno) << std::endl;
+      exit(EXIT_FAILURE);
+    }
 
-	// bind it to the port we passed in to getaddrinfo():
-  if (bind(sockfd, res->ai_addr, res->ai_addrlen) < 0) {
-    std::cerr << "bind failed" << strerror(errno) << std::endl;
-    exit(EXIT_FAILURE);
-  }
+  	// bind it to the port we passed in to getaddrinfo():
+    if (bind(sockfd, res->ai_addr, res->ai_addrlen) < 0) {
+      std::cerr << "bind failed\t" << strerror(errno) << std::endl;
+      continue;
+    }
+
+    break;
+  } while (std::cout << "Choose a new port:" << std::endl &&  std::cin >> port);
 
   if (listen(sockfd, 5) < 0) { //listen queue is 5
-  	std::cerr << "listen failed" << strerror(errno) << std::endl;
-  	exit(EXIT_FAILURE);
+    std::cerr << "listen failed" << strerror(errno) << std::endl;
+    exit(EXIT_FAILURE);
   }
 
   std::cout << "Accepting connections" << std::endl;
