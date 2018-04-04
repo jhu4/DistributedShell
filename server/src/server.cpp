@@ -126,7 +126,7 @@ void server_routine(int server_fd) {
     
     std::string hashed_password(buffer);
     if (!authenticate(username, hashed_password, random_num)) {
-      char string[] = "Hey, next time use the right password dummy!";
+      char string[] = "authentication failed: the username is username, the password is password";
       send(new_socket, string, strlen(string) ,0);
       exit(0);	
     }

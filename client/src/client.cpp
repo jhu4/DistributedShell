@@ -48,6 +48,10 @@ int main(int argc, char** argv) {
   receive_from_server(sock, buffer, serv);
   std::cout << "Authentication: " << buffer << std::endl;      
 
+  if (strstr(buffer, "failed")) {
+    exit(-1);
+  }
+  
   std::cout << "Cmd output:" << std::endl; 
 
   if (test) {

@@ -1,0 +1,17 @@
+
+1.
+>> ./dsh -c "ls" -s 18.216.211.147 -p 7777
+
+What's your username?
+0
+What's password?
+1
+Authentication: password ok
+Cmd output:
+dcs_hw2
+sysbench
+Cmd executed successfully
+
+2.
+>>
+
