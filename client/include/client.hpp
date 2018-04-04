@@ -28,11 +28,10 @@ std::string user_name();
 void send_to_server(int, std::string);
 int get_sock(std::string host, std::string port, struct addrinfo* serv);
 int unique_number(char* buffer, struct addrinfo* serv);
-void receive_from_server(int sock, char* buffer, struct addrinfo* serv);
+int receive_from_server(int sock, char* buffer, struct addrinfo* serv);
 std::string encrypt(int unique_number);
 std::string user_name();
 int send_all(int sock, char *buf, int *len);
-char* get_hashcode(char* rand);
 long get_milliseconds(struct timeval tv);
 void write_file(long time);
 

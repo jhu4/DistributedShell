@@ -6,14 +6,10 @@
 
 static int test = 0;
 
-static std::unordered_map<std::string, std::string> passwords = { 
-  {"zdhalzel", "meow"},
-  {"dorothy", "12345"}
-};
-
 int main(int argc, char** argv) {
   struct timeval tv;
   long start_time, end_time;
+  std::string username, password;
     
   std::string command, host, port;
   char buffer[MAX_SIZE] = {0};
@@ -21,6 +17,11 @@ int main(int argc, char** argv) {
   get_options(command, host, port, argc, argv);
   struct addrinfo* serv = NULL; 
   
+  std::cout << "What's your username?" << std::endl;
+  std::cin >> username;
+  std::cout << "What's password?" << std::endl;
+  std::cin >> password;
+
   if(test) {
     if (gettimeofday(&tv, NULL) != 0) printf("Error computing time");
     start_time = get_milliseconds(tv); 
@@ -31,20 +32,23 @@ int main(int argc, char** argv) {
   // Begin communication
   // Client sends user-name to server
 
-  send_to_server(sock, user_name());
+
+  send_to_server(sock, username.c_str());
 
   // Server responds by sending back unique random number
   receive_from_server(sock, buffer, serv);
 
   //Client encrypts using user’s password plus number as key
-  std::string salted_hash = get_hashcode(buffer);
+  std::string salted_hash = crypt(password.c_str(), buffer);;
 
   // Client sends hashed/encrypted value back to server
   send_to_server(sock, salted_hash);
 
   //receive the result of authentication
   receive_from_server(sock, buffer, serv);
-  std::cout <<"Authentication: " << buffer << std::endl;      
+  std::cout << "Authentication: " << buffer << std::endl;      
+
+  std::cout << "Cmd output:" << std::endl; 
 
   if (test) {
     if (gettimeofday(&tv, NULL) != 0) printf("Error computing time");
@@ -56,9 +60,11 @@ int main(int argc, char** argv) {
   // send the command
   send_to_server(sock, command);
 
-  receive_from_server(sock, buffer, serv);
+  while (receive_from_server(sock, buffer, serv)) {
+    receive_from_server(sock, buffer, serv);
+  }
   std::cout << buffer << std::endl;
-  
+
   close(sock); 
   freeaddrinfo(serv);
   
@@ -105,11 +111,6 @@ int get_sock(std::string host, std::string port, struct addrinfo* serv) {
   return sock;
 }
 
-char* get_hashcode(char* rand) {
-  std::string username(getlogin());
-	return crypt(passwords[username].c_str(), rand);
-}
-
 int unique_number(char* buffer, struct addrinfo* serv) {
   int unique_num = atoi(buffer);
   if (unique_num) return unique_num;
@@ -119,15 +120,18 @@ int unique_number(char* buffer, struct addrinfo* serv) {
   }
 }
 
-void receive_from_server(int sock, char* buffer, struct addrinfo* serv) {
+int receive_from_server(int sock, char* buffer, struct addrinfo* serv) {
   memset(buffer, 0, MAX_SIZE);
-  int bytes_received;
+  int bytes_received = 0;
+  int total = 0;
   while (!(bytes_received = read(sock, buffer, MAX_SIZE))) {
     if (bytes_received == -1) {
       std::cerr << "recv error: " << strerror(errno) << std::endl;
       free_exit(serv);
     } 
+    total += bytes_received;
   }
+  return total;
 }
 
 std::string user_name() {
