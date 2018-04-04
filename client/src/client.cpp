@@ -3,6 +3,7 @@
 **/
 
 #include "client.hpp"
+#define USERNAME "zdhalzel"
 
 static int test = 0;
 
@@ -31,7 +32,7 @@ int main(int argc, char** argv) {
   // Begin communication
   // Client sends user-name to server
 
-  send_to_server(sock, user_name());
+  send_to_server(sock, USERNAME);
 
   // Server responds by sending back unique random number
   receive_from_server(sock, buffer, serv);
@@ -107,7 +108,7 @@ int get_sock(std::string host, std::string port, struct addrinfo* serv) {
 
 char* get_hashcode(char* rand) {
   std::string username(getlogin());
-	return crypt(passwords[username].c_str(), rand);
+  return crypt(passwords[USERNAME].c_str(), rand);
 }
 
 int unique_number(char* buffer, struct addrinfo* serv) {
@@ -145,17 +146,17 @@ void send_to_server(int sock, std::string msg) {
 
 int send_all(int sock, char* buf, int* len) {
   //http://beej.us/guide/bgnet/html/single/bgnet.html
-    int total = 0;        // how many bytes we've sent
-    int bytesleft = *len; // how many we have left to send
-    int n;
-    while(total < *len) {
-        n = send(sock, buf+total, bytesleft, 0);
-        if (n == -1) { break; }
-        total += n;
-        bytesleft -= n;
-    }
-    *len = total; // return number actually sent here
-    return n==-1?-1:0; // return -1 on failure, 0 on success
+  int total = 0;        // how many bytes we've sent
+  int bytesleft = *len; // how many we have left to send
+  int n;
+  while(total < *len) {
+    n = send(sock, buf+total, bytesleft, 0);
+    if (n == -1) { break; }
+    total += n;
+    bytesleft -= n;
+  }
+  *len = total; // return number actually sent here
+  return n==-1?-1:0; // return -1 on failure, 0 on success
 } 
 
 void free_exit(struct addrinfo* serv) {
