@@ -6,7 +6,9 @@
 
 static std::unordered_map<std::string, std::string> passwords = { 
   {"zdhalzel", "meow"},
-  {"dorothy", "12345"}
+  {"dorothy", "12345"},
+  {"username", "password"},
+  {"0","1"}
 };
 
 static int test = 0;
@@ -124,7 +126,7 @@ void server_routine(int server_fd) {
     
     std::string hashed_password(buffer);
     if (!authenticate(username, hashed_password, random_num)) {
-      char string[] = "Hey, next time use the right password dummy!";
+      char string[] = "authentication failed: the username is username, the password is password";
       send(new_socket, string, strlen(string) ,0);
       exit(0);	
     }
@@ -147,7 +149,22 @@ void server_routine(int server_fd) {
       std::cerr << "dup2:" << strerror(errno) << std::endl;
     }
 
-    execute(cmd);
+    pid = fork();
+
+    if (pid < 0) {
+      std::cerr << "fork(fork()) error " << strerror(errno) << std::endl;
+      exit(EXIT_FAILURE);
+      
+    }
+    else if (pid == 0) {
+      execute(cmd);
+    }
+    else {
+      wait(0);
+      std::cout << "Cmd executed successfully" << std::endl;
+      close(new_socket);
+    }
+    
 	  exit(0);
   }
 
