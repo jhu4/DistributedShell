@@ -25,8 +25,8 @@ Hints on usage can be found using the -h option
 Similarly, the client may be run with the following command:
 > ./client/dsh -h
 
-We hard-coded a user-name for the benefit of the grading TAs so that they can run our program
-easily, but we initially tested successfully using the syscall that finds our own usernames.
+The username is 'username'
+The password is 'password'
 
 
 **Acknowledgments**
