@@ -1,0 +1,5 @@
+rm latency.txt
+for run in {1..100}
+do
+	make && ./dsh -s 18.219.159.172 -p 4444 -c "" -t
+done

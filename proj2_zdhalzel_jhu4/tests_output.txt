@@ -1,0 +1,79 @@
+
+1.
+>> ./dsh -c "ls" -s 18.216.211.147 -p 7777
+
+What's your username?
+0
+What's password?
+1
+Authentication: password ok
+Cmd output:
+dcs_hw2
+sysbench
+Cmd executed successfully
+
+2.
+>> ./dsh -c "ls" -s 18.216.211.147 -p 7777
+
+What's your username?
+zdhalzel
+What's password?
+meh
+Authentication: authentication failed: the username is username, the password is password
+
+3.
+./dsh -c "mkdir meow" -s 18.216.211.147 -p 7777
+
+What's your username?
+dorothy
+What's password?
+12345
+Authentication: password ok
+Cmd output:
+Cmd executed successfully
+
+4.
+>> ./dsh -c "whoami" -s 18.216.211.147 -p 7777
+
+What's your username?
+username
+What's password?
+password
+Authentication: password ok
+Cmd output:
+ubuntu
+Cmd executed successfully
+
+5. 
+>> ./dsh -c "rm -r meow" -s 18.216.211.147 -p 7777
+
+What's your username?
+username
+What's password?
+password
+Authentication: password ok
+Cmd output:
+Cmd executed successfully
+
+
+---------------------------------------------------------------------------------
+Below are server outputs
+---------------------------------------------------------------------------------
+port: 7777	directory: /home/ubuntu/
+Accepting connections
+Connection request received
+Forked child
+received username: zdhalzel
+Connection request received
+Forked child
+received username: dorothy
+command: mkdir meow
+Connection request received
+Forked child
+received username: username
+command: whoami
+Connection request received
+Forked child
+received username: username
+command: rm -r meow
+
